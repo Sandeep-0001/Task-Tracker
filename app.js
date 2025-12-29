@@ -31,10 +31,11 @@
 
   function addTodo(text) {
     const trimmed = text.trim();
-    if (!trimmed) return;
+    if (!trimmed) return false;
     todos.unshift({ id: uid(), text: trimmed, completed: false, createdAt: Date.now() });
     save();
     render();
+    return true;
   }
 
   function toggleComplete(id) {
@@ -157,10 +158,20 @@
     itemsLeftEl.textContent = `${left} item${left === 1 ? '' : 's'} left`;
   }
 
+  function submitNewTodo() {
+    const added = addTodo(input.value);
+    // Clear spaces and/or the added value so placeholder shows again.
+    input.value = '';
+    if (added) input.focus();
+  }
+
   // Wire up UI
-  addBtn.addEventListener('click', () => addTodo(input.value));
+  addBtn.addEventListener('click', submitNewTodo);
   input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') addTodo(input.value);
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      submitNewTodo();
+    }
   });
   listEl.addEventListener('click', (e) => {
     // event delegation if needed in future
