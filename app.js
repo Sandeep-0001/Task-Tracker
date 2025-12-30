@@ -16,14 +16,36 @@
     return Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
   }
 
+  function normalizeTodos(value) {
+    if (!Array.isArray(value)) return [];
+    /** @type {{id:string,text:string,completed:boolean,createdAt:number}[]} */
+    const out = [];
+    for (const item of value) {
+      if (!item || typeof item !== 'object') continue;
+      const text = typeof item.text === 'string' ? item.text.trim() : '';
+      if (!text) continue;
+      out.push({
+        id: typeof item.id === 'string' && item.id ? item.id : uid(),
+        text,
+        completed: Boolean(item.completed),
+        createdAt: typeof item.createdAt === 'number' ? item.createdAt : Date.now(),
+      });
+    }
+    return out;
+  }
+
   function save() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
+    } catch {
+      // Ignore storage write failures (e.g., blocked storage / private mode).
+    }
   }
 
   function load() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      todos = raw ? JSON.parse(raw) : [];
+      todos = raw ? normalizeTodos(JSON.parse(raw)) : [];
     } catch (e) {
       todos = [];
     }
